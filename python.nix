@@ -6,6 +6,7 @@
 , lib
 , extraPackages ? _ps: [ ]
 , pkgs
+, gcovr
 }:
 
 let
@@ -18,6 +19,9 @@ let
 
       # Nixpkgs has incorrect canonical naming
       python-can = super.python-can or self.can;
+
+      # moved to top level package in nixpkgs
+      gcovr = gcovr;
 
       # Upstream bug. Network tests for canopen-2.3.0 may fail due to fragile timing assumptions
       canopen = super.canopen.overridePythonAttrs (old: {
@@ -35,6 +39,29 @@ let
 
       # HACK: Older Zephyr depends on these missing dependencies
       sphinxcontrib-svg2pdfconverter = super.sphinxcontrib-svg2pdfconverter or null;
+
+      sphinx-lint = self.buildPythonPackage rec {
+        pname = "sphinx-lint";
+        version = "1.0.0";
+        format = "wheel";
+
+        src = pkgs.fetchurl {
+          url = "https://files.pythonhosted.org/packages/31/d2/a130ffba531af7cbbb0e7ad24c7d577d3de0b797437f61d3a7234ed6d836/sphinx_lint-1.0.0-py3-none-any.whl";
+          hash = "sha256-YReg80Cy3HPq38V9t1MdRHfgkp+SoMGi9h5u28Jy8Lw=";
+        };
+
+        propagatedBuildInputs = with self; [
+          polib
+          regex
+        ];
+
+        meta = with lib; {
+          description = "Check for stylistic and formal issues in .rst and .py files included in the documentation.";
+          homepage = "https://github.com/sphinx-contrib/sphinx-lint";
+          # license = licenses.python;
+          maintainers = with maintainers; [ ];
+        };
+      };
     };
   };
 
